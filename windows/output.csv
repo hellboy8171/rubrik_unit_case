@@ -1,0 +1,7 @@
+Duration,Hostname,Object Type
+925.96,t01ldr01381.corp.pep.tst,Linux fileset
+86.17,T01WAP02324,vSphere VM
+33.39,t01zfp00008.corp.pep.tst:/vmware,NAS share
+1050.42,t01wap03338.corp.pep.tst,Windows fileset
+393.06,t01wap03849.corp.pep.tst,Windows volumes
+254.03,t01ldr01381,Oracle DB
