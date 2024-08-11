@@ -1,0 +1,27 @@
+- name: creating an standard change
+  hosts: localhost
+  vars:
+    servicenow_instance: "https://pepsicodev2.service-now.com"
+    Username_ServiceNow: "ITOPSBOT.INTEGRATION"
+    Instance_Name: "pepsicodev2"
+    Password_ServiceNow: "44VaY3zF3bkd"
+    ctask_sys_id: "f28ea273833f829068007be16daad3e9"
+    task_body: '{ "state": 1, "work_notes": "automation failed","assignment_group":"INFRASTRUCTURE BACKUP","assigned_to": " " }'
+    table_name: "change_task"
+    sys_id: "ade35540c3805a50ac4bf466050131de"
+  tasks:
+    - name: update C task
+      uri:
+        url: "https://{{ Instance_Name }}.service-now.com/api/now/table/{{table_name}}/{{ sys_id }}"
+        url_username: "{{ Username_ServiceNow }}"
+        url_password: "{{ Password_ServiceNow }}"
+        method: PATCH
+        body: "{{task_body}}"
+        body_format: json
+        status_code:
+          - 201
+          - 200
+      register: snow_update_result
+    - debug:
+        msg: "{{snow_update_result}}"
+   

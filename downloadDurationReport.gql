@@ -1,0 +1,12 @@
+mutation downloadfile($input:DownloadReportCsvAsyncInput!)
+{
+  downloadReportCsvAsync(input:$input)
+  {
+    jobId
+    downloadId
+    referenceId
+    __typename
+    
+  }
+}
+

@@ -1,0 +1,29 @@
+---
+- name: Upload attachments to ServiceNow
+  hosts: localhost
+  gather_facts: no
+  vars:
+    servicenow_instance: "https://pepsicodev2.service-now.com"
+    Instance_Name: "pepsicodev2"
+    Username_ServiceNow: "ITOPSBOT.INTEGRATION"
+    Password_ServiceNow: "44VaY3zF3bkd"
+    evidences_doc_path: 
+        - "mahi.txt"
+    table_name: "change_request"
+    table_sys_id: "b294fd4083cc9a5862e4c878beaad39a"
+  tasks:
+
+   
+    - name: Upload files to ServiceNow using curl
+      command: >
+            curl -u "{{ Username_ServiceNow }}:{{ Password_ServiceNow }}"
+            -F "table_name={{ table_name }}"
+            -F "table_sys_id={{ table_sys_id }}"
+            -F "uploadFile=@{{ item }}"
+            "https://{{ Instance_Name }}.service-now.com/api/now/attachment/upload"
+      loop: "{{ evidences_doc_path }}"
+      register: result
+
+    - debug:
+        msg: "{{result}}"
+

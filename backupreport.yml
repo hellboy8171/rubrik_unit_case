@@ -1,0 +1,101 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    access_token_uri: "https://hcl-pepsico-am.my.rubrik.com/api/client_token"
+    client_id: "client|cc3f2839-63f2-4c66-8e03-211b66fa165e"
+    client_secret: "U3AUwzR4UUimKN88TVmpO1RZBTmGH_O0_2FWFwajuoHYpTW71U5jQQvHY3T7P143"
+    rsc_instance: "https://hcl-pepsico-am.my.rubrik.com"
+    get_report_id_query: "getReportID.gql"
+    duration_report_download_mutation: "downloadDurationReport.gql"
+    duration_report_name: "Protection Tasks Details report(Will be used by HyperAutomation Team)"
+    get_report_external_ID_query: "getReportExternalID.gql"
+    output_file: "/home/ansible/script/duration_report.csv"
+    rsc:
+      json:
+        access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL215LnJ1YnJpay5jb20vIiwiZXhwIjoxNzIzMTgzODYxLCJpYXQiOjE3MjMxNDA2NjEsImlzcyI6Imh0dHBzOi8vbXkucnVicmlrLmNvbS8iLCJzdWIiOiJjbGllbnR8Y2MzZjI4MzktNjNmMi00YzY2LThlMDMtMjExYjY2ZmExNjVlIiwiaHR0cHM6Ly9teS5ydWJyaWsuY29tL2FjY291bnQiOiJoY2wtcGVwc2ljby1hbSIsImh0dHBzOi8vbXkucnVicmlrLmNvbS9vcmdhbml6YXRpb24iOiIxMzdhM2RiZS1jZTQ5LTRiZTAtYWNiNS1kNWUxNGVkMTUwY2MiLCJodHRwczovL215LnJ1YnJpay5jb20vY29ubmVjdGlvblR5cGUiOiJjbGllbnQiLCJodHRwczovL215LnJ1YnJpay5jb20vdXNlcm5hbWUiOiJoeXBlcmF1dG9tYXRpb24iLCJodHRwczovL215LnJ1YnJpay5jb20vc2Vzc2lvbklkIjoiNjlhYTM4ZjUtOGFlOC00NTc3LWI4NzQtOGJjMmU5ODc5Nzk3In0.QmtCcTfEwwA8glNukgqCAc0-sUhRDktl5zqBdua9I5RbXRtZ9K0knlgvRR-cQ0AUDxU9FAPnjA1htiE7R7jKpBBpxvqcgBXTuig-SWL6vAZzlZUqjtkvl_dk5lOgqL0We7BleaZUNmGDj4vLGT-kfHuGSauXP5aC4pxJ6HU-kvQN-VZca4uQddKaEZRH3VznJrGbpu3p-Va1D50bEYYjeP952zelIQ7FC2CFj1K-1Qd1KHGSYSoI2ET0bRfqvrxI_mTeEqa_qywEO9WYywPbLDNwcPCEm54hNTs5HwtGBPGb0rAMKBfNzHGTvAB5eWpRxP7bUds-ylQsdTj_oJxWLA"
+
+  tasks:
+    - name: Connect to Rubrik
+      uri:
+        url: "{{ access_token_uri }}"
+        method: POST
+        body_format: json
+        body:
+          client_id: "{{ client_id }}"
+          client_secret: "{{ client_secret }}"
+      register: rsc
+    - debug:
+        msg: "{{rsc.json.access_token}}"
+    - name: RSC GraphQL Query || Fetch Duration Report ID
+      uri:
+        url: "{{ rsc_instance }}/api/graphql"
+        method: POST
+        headers:
+          content-type: "application/json"
+          authorization: "Bearer {{ rsc.json.access_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("file", "{{ get_report_id_query }}") }}'
+          variables: |
+            {
+              "polarisReportsFilters": [
+                {
+                  "field": "SEARCH_TERM",
+                  "text": "{{duration_report_name}}"
+                }    
+              ]
+            }
+      register: get_report_id_query_result
+    - set_fact:
+        report_id: "{{get_report_id_query_result.json.data.allRscReportConfigs[0].id}}"
+    - name: RSC GraphQL Mutation || Download Backup CSV Report on Rubrik
+      uri:
+        url: "{{ rsc_instance }}/api/graphql"
+        method: POST
+        headers:
+          content-type: "application/json"
+          authorization: "Bearer {{ rsc.json.access_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("file", "{{ duration_report_download_mutation }}") }}'
+          variables: |
+            {
+              "input": {
+                "id": {{report_id}}
+              }
+            }
+      register: duration_report_download_mutation_result
+    - debug:
+        msg: "{{duration_report_download_mutation_result}}"
+
+    - name: RSC GraphQL Query || Get Latest Report External ID
+      uri:
+        url: "{{ rsc_instance }}/api/graphql"
+        method: POST
+        headers:
+          content-type: "application/json"
+          authorization: "Bearer {{ rsc.json.access_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("file", "{{ get_report_external_ID_query }}") }}'
+      register: get_report_external_ID_query_result
+
+    - debug:
+        msg: "{{get_report_external_ID_query_result}}"
+    - set_fact:
+        report_external_id: "{{get_report_external_ID_query_result.json.data.allUserFiles[0].downloads[-1].externalId}}"        
+    - debug:
+        msg: "{{report_external_id}}"        
+    - pause:
+       seconds: 60
+        
+    - name: Download File
+      get_url:
+        url: "{{rsc_instance}}/file-downloads/{{report_external_id}}"
+        dest: "{{output_file}}"
+        headers:
+          Authorization: "Bearer {{ rsc.json.access_token }}"
+      register: download_file_result
+    - debug:
+        msg: "{{download_file_result}}"

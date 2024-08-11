@@ -1,0 +1,12 @@
+mutation PauseResumeClusterProtectionMutation($input: UpdateClusterPauseStatusInput!) {
+  updateClusterPauseStatus(input: $input) {
+    pauseStatuses {
+      clusterUuid
+      success
+      __typename
+    }
+    __typename
+  }
+}
+
+

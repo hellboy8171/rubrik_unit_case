@@ -1,0 +1,71 @@
+{
+  "input": {
+    "fileType": "CSV",
+    "reportId": 0,
+    "timezone": "Asia/Calcutta",
+    "config": {
+      "ngAlphaConfig": {
+        "name": "MONITORING_IN_PROGRESS",
+        "dataViewType": "MONITORING_IN_PROGRESS",
+        "columns": [
+          "job_status",
+          "job_type",
+          "targeted_cluster",
+          "location_name",
+          "sla_domain_name",
+          "object_type",
+          "object_name",
+          "event_series_id",
+          "start_time",
+          "duration",
+          "estimated_time_remaining",
+          "data_transferred",
+          "data_remaining",
+          "throughput",
+          "object_logical_size",
+          "retry_count",
+          "node_id",
+          "source_targeted_cluster",
+          "org_name",
+          "progress"
+        ],
+        "groupBy": {
+          "groupById": "",
+          "aggregations": []
+        },
+        "aggregations": [],
+        "filters": [
+          {
+            "name": "cluster_uuid",
+            "values": [
+              "{{cluster_id}}"
+            ]
+          },
+          {
+            "name": "job_status",
+            "values": [
+              "Active"
+            ]
+          },
+           {
+            "name": "job_type",
+            "values": [
+              "Recovery"
+            ]
+          },
+          {
+            "name": "cluster_status",
+            "values": [
+              "CONNECTED"
+            ]
+          }
+        ],
+        "sortBy": "job_status",
+        "sortOrder": "DESC"
+      },
+      "reportVersion": "NG_REPORT_ALPHA"
+    }
+  }
+}
+
+

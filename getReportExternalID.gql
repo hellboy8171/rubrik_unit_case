@@ -1,0 +1,9 @@
+query DownloadBarQuery{ 
+  allUserFiles {
+    downloads {
+      externalId
+      createdAt
+      filename
+    } 
+  }
+}

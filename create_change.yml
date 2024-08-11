@@ -1,0 +1,94 @@
+---
+- name: creating an standard change
+  hosts: localhost
+  vars:
+    servicenow_instance: "https://pepsicodev2.service-now.com"
+    servicenow_user: "ITOPSBOT.INTEGRATION"
+    servicenow_password: "44VaY3zF3bkd"
+    template_name: "Rubrik Upgrade Request"
+    targeted_version: "8.1.3-p2"
+    targeted_cluster_FQDN: "be766e25db6fffc481b4e3a84b9619b6"
+    impacted_locations: "01, EGYPT"
+    impacted_companies: "FLNA"
+  tasks:
+    - name: Set planned_start_date and planned_end_date
+      set_fact:
+        planned_start_date: "{{ lookup('pipe','date -d \"+3 minutes\" +\"%Y-%m-%d %H:%M:%S\"') }}"
+        planned_end_date: "{{ lookup('pipe','date -d \"+5 days\" +\"%Y-%m-%d %H:%M:%S\"') }}"
+ 
+    - name: Replace space in template name
+      set_fact:
+        temp_name: "{{ template_name.split(' ')| join('%20') }}"
+    - name: Print template name
+      debug:
+        msg: "{{ temp_name }}"
+    
+    - name: Fetch Template sys_id
+      uri:
+        url: "{{ servicenow_instance }}/api/now/table/std_change_record_producer?sysparm_query=sys_name={{ temp_name }}"
+        method: GET
+        user: "{{ servicenow_user }}"
+        password: "{{ servicenow_password }}"
+        return_content: yes
+        status_code: 200
+      register: template_details
+    - name: Print template details
+      debug:
+        msg: "{{ template_details }}"
+    - name: Get template sys_id
+      set_fact:
+        template_id: "{{ template_details.json.result[0].sys_id }}"
+    - name: Print template sys_id
+      debug:
+        msg: "{{ template_id }}"
+    - name: Create an change
+      uri:
+        url: "{{ servicenow_instance }}/api/sn_chg_rest/change/standard/{{ template_id }}"
+        url_username: "{{ servicenow_user }}"
+        url_password: "{{ servicenow_password }}"
+        method: POST
+        body: '{
+          "description":"Rubrik PATCH Upgrade to {{targeted_version}} on {{targeted_cluster_FQDN}}",
+          "cmdb_ci":"{{ targeted_cluster_FQDN }}",
+          "business_service":"APP MGMT SERVICES - INFRASTRUCTURE STORAGE",
+          "service_offering":"STORAGE SERVICES - SO",
+          "assigned_to": "ITOPSBOT.INTEGRATION",
+          "category":"Infrastructure - compute",
+          "start_date":"{{ planned_start_date }}",
+          "end_date":"{{ planned_end_date }}"
+          }'
+        body_format: json
+      register: standard_change
+    - name: change details
+      debug:
+        var: standard_change.json.result
+    - name: fetch change Details
+      set_fact:
+        change_sys_id: "{{ standard_change.json.result.sys_id.value }}"
+        change_number: "{{ standard_change.json.result.number.value }}"
+    - debug:
+        msg:
+          - "{{ change_sys_id }}"
+          - "{{ change_number }}"
+    - name: Change state to Schedule
+      uri:
+        url: "{{ servicenow_instance }}/api/now/table/change_request/{{ change_sys_id }}"
+        url_username: "{{ servicenow_user }}"
+        url_password: "{{ servicenow_password }}"
+        method: PATCH
+        body: { state: -2 }
+        body_format: json
+        status_code:
+          - 201
+          - 200
+    - name: Change state to Implement
+      uri:
+        url: "{{ servicenow_instance }}/api/now/table/change_request/{{ change_sys_id }}"
+        url_username: "{{ servicenow_user }}"
+        url_password: "{{ servicenow_password }}"
+        method: PATCH
+        body: { "state": -1}
+        body_format: json
+        status_code:
+          - 201
+          - 200

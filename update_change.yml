@@ -1,0 +1,28 @@
+---
+- name: creating an standard change
+  hosts: localhost
+  vars:
+    servicenow_instance: "https://pepsicodev2.service-now.com"
+    servicenow_user: "ITOPSBOT.INTEGRATION"
+    servicenow_password: "44VaY3zF3bkd"
+    template_name: "Rubrik upgrade request"
+    targeted_version: "8.1.3-p2"
+    targeted_cluster_FQDN: "S"
+    cluster_name: "PDCTESTRUBRIK01"
+    impacted_companies: "c027f91f1be7c4d0673963d76e4bcb12"
+    impacted_locations: "01, EGYPT"
+    change_sys_id: "77929b4cc3081e50ac4bf466050131d1"
+    ctask_sys_id: "31e25f48c348969072f5b1da0501313a"
+  tasks:
+
+    - name: Close Check Implementation and update worknote
+      uri:
+        url: "{{ servicenow_instance }}/api/now/table/change_task/{{ ctask_sys_id }}"
+        url_username: "{{ servicenow_user }}"
+        url_password: "{{ servicenow_password }}"
+        method: PATCH
+        body: '{ "state": 3, "work_notes": "Postcheck successfull on {{cluster_name}}","assignment_group":"DCOPS ANSIBLE AUTOMATION","assigned_to":"ITOPSBOT.REVIEWER"}'
+        body_format: json
+        status_code:
+          - 201
+          - 200
