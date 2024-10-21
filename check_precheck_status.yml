@@ -1,0 +1,65 @@
+- hosts: localhost
+  gather_facts: no
+  vars:
+    rsc_instance: "https://hcl-pepsico-am.my.rubrik.com"
+    client_id: "client|cc3f2839-63f2-4c66-8e03-211b66fa165e"
+    client_secret: "U3AUwzR4UUimKN88TVmpO1RZBTmGH_O0_2FWFwajuoHYpTW71U5jQQvHY3T7P143"
+    access_token_uri: "https://hcl-pepsico-am.my.rubrik.com/api/client_token"
+    get_precheck_status_query: "/home/ansible/rubrik_unit_case/getPrecheckStatus.gql"
+    cluster_id: "5091bbcc-9490-4e42-87ae-b4276a5f2e7e"
+    rsc:
+      json:
+        access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL215LnJ1YnJpay5jb20vIiwiZXhwIjoxNzIyMzgwMTY0LCJpYXQiOjE3MjIzMzY5NjQsImlzcyI6Imh0dHBzOi8vbXkucnVicmlrLmNvbS8iLCJzdWIiOiJjbGllbnR8Y2MzZjI4MzktNjNmMi00YzY2LThlMDMtMjExYjY2ZmExNjVlIiwiaHR0cHM6Ly9teS5ydWJyaWsuY29tL2FjY291bnQiOiJoY2wtcGVwc2ljby1hbSIsImh0dHBzOi8vbXkucnVicmlrLmNvbS9vcmdhbml6YXRpb24iOiIxMzdhM2RiZS1jZTQ5LTRiZTAtYWNiNS1kNWUxNGVkMTUwY2MiLCJodHRwczovL215LnJ1YnJpay5jb20vY29ubmVjdGlvblR5cGUiOiJjbGllbnQiLCJodHRwczovL215LnJ1YnJpay5jb20vdXNlcm5hbWUiOiJoeXBlcmF1dG9tYXRpb24iLCJodHRwczovL215LnJ1YnJpay5jb20vc2Vzc2lvbklkIjoiOTExMDQ2NzYtYTIyYi00YzZhLTgyNzItZmZiNjRiMjAwNTk1In0.k5JJOe0oJabip1w6Y59BwtMW-c6ahPGN6WeKT1r6FSLEd0JMu80VjFQgPeDUsN7kijvrWfs0wQcTl49nlKJl1YmAJcC0_-exUlluGcLfum-mVfwXKb0VMTS3RJ78ByRzPFwJgMm4ENIIFfsuKSw1Jia6TMV-CzrcAOqcA0RxqZCCw8SNLJOW21TkRtxunUEnBqDp1c0V1grormVV681prS-EV-lHNk2Nor4yRQz1OwyjMcfo-yVL9mBwHK-tMxVn6mHeBkpxLMsY-XC1WWDZkBo-QsrCt5632GXvR9mbsxnJws0JXvcHvWRpxxrFqStdPN3zONOcqLWqmDj4XgtkhQ"
+  tasks:
+    - block:
+        - set_fact:
+            fetch_duration_rc: "success"
+        - name: Connect to Rubrik
+          uri:
+            url: "{{ access_token_uri }}"
+            method: POST
+            body_format: json
+            body:
+              client_id: "{{ client_id }}"
+              client_secret: "{{ client_secret }}"
+          register: rsc
+        - debug:
+            msg: "{{rsc}}"
+        - name: RSC GraphQL Query || Get Precheck Status
+          uri:
+            url: "{{ rsc_instance }}/api/graphql"
+            method: POST
+            headers:
+              content-type: "application/json"
+              authorization: "Bearer {{ rsc.json.access_token }}"
+            body_format: json
+            body:
+              query: '{{ lookup("file", "{{ get_precheck_status_query }}") }}'
+              variables: |
+                {
+                    "clusterUuid": "{{cluster_id}}"
+                }
+          register: precheck_data
+
+    - block:
+        - name: Check if failureResults is empty
+          set_fact:
+            failure_results_empty: "{{ precheck_data.json.data.prechecksStatus.failureResults | length == 0 }}"
+
+        - name: Set upgrade blocker status if failureResults is not empty
+          set_fact:
+            upgrade_blocker: >-
+              {{ precheck_data.json.data.prechecksStatus.failureResults | selectattr('upgradeBlocker', 'equalto', true) | list | length > 0 }}
+          when: not failure_results_empty
+
+        - name: Fail if there is an upgrade blocker
+          set_fact:
+            precheck_rc: "failed"
+          when: upgrade_blocker
+
+      rescue:
+        - set_fact:
+            precheck_rc: "failed"
+        - debug:
+            msg: "precheck failed"
+
