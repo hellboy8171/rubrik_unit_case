@@ -1,7 +1,0 @@
-query AllPolarisReportConfigsQuery($polarisReportsFilters: [PolarisReportsFilterInput!]) {
-  allRscReportConfigs(polarisReportsFilters: $polarisReportsFilters) {
-    id
-    name
-    reportViewType
-  }
-}

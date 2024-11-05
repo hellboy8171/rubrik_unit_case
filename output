@@ -1,0 +1,35 @@
+Name                                      Pre-Comp (GiB)   Status
+---------------------------------------   --------------   ------
+/data/col1/backup                                    0.0   RW
+/data/col1/FDC-50162-BRONZE                        162.9   RW
+/data/col1/FDC-50162-BRONZE-DB                       0.0   RW
+/data/col1/FDC-50162-PLAT-GOLD                       0.0   RW
+/data/col1/FDC-50162-PLAT-GOLD-DB                    0.0   RW
+/data/col1/FDC-50162-PLAT-GOLD-ORA                   0.0   RW
+/data/col1/FDC-50162-SILVER                        758.9   RW
+/data/col1/FDC-50162-SILVER-DB                       0.0   RW
+/data/col1/FDC-50162-SILVER-ORA                      0.0   RW
+/data/col1/FDC_HANADB_NONPROD                  1251483.4   RW
+/data/col1/FDC_ORACLEDB_NONPROD                      0.0   RW
+/data/col1/LDC-50022-HANADB-PROD               1010463.7   RO/RD
+/data/col1/LDC-50161-DB-REFRESH-RFM-AIR              0.0   RW
+/data/col1/LDC-50161-DB-REFRESH-RTO-AIR              0.0   RW
+/data/col1/LDC-50161-DB_REFRESH-RFM-AIR              0.0   RW
+/data/col1/LDC-50161-EXADATA-NON-DR                  0.0   RO/RD
+/data/col1/LDC01-DB_REFRESH-RFM-AIR                  0.0   RW
+/data/col1/oraclestu                                 0.0   RW
+/data/col1/oraclestu_ldc_repl                  1303788.2   RO/RD
+/data/col1/SDC-147-HANADB-PROD1                 304032.2   RO/RD
+---------------------------------------   --------------   ------
+ D    : Deleted
+ Q    : Quota Defined
+ RO   : Read Only
+ RW   : Read Write
+ RD   : Replication Destination
+ IRH  : Retention-Lock Indefinite Retention Hold Enabled
+ ARL  : Automatic-Retention-Lock Enabled
+ RLGE : Retention-Lock Governance Enabled
+ RLGD : Retention-Lock Governance Disabled
+ RLCE : Retention-Lock Compliance Enabled
+ M    : Mobile
+ m    : Migratable

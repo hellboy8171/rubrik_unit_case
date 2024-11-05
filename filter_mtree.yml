@@ -1,0 +1,39 @@
+- name: Read data file and parse entries
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Read the file content
+      slurp:
+        src: '/home/devuser/rubrik_unit_case/output'
+      register: file_content
+
+    - name: Decode and split content by lines
+      set_fact:
+        file_lines: "{{ file_content.content | b64decode | split('\n') }}"
+
+    - debug:
+          msg: "{{file_lines}}"
+
+
+    - name: Parse the file into structured data
+      set_fact:
+        data_entries: "{{ data_entries | default([]) + [ {'name': parsed_item.0 | regex_replace('^\\s+|\\s+$', ''), 'pre_comp': parsed_item.1 | regex_replace('^\\s+|\\s+$', ''), 'status': parsed_item.2 | regex_replace('^\\s+|\\s+$', '')} ] }}"
+      loop: "{{ file_lines[2:-14] }}"  # Skips header lines and footer
+      vars:
+        parsed_item: "{{ item | regex_replace('\\s{2,}', '|') | split('|') }}"
+      when: parsed_item | length == 3  # Ensure each line has exactly 3 elements
+
+    - name: Debug parsed data
+      debug:
+        var: data_entries
+
+    - name: print command only when precomp is not 0
+      debug:
+          msg: "sfs dump mtree{{item}}"
+      when: item.pre_comp != "0.0"
+      loop: "{{data_entries}}"
+
+
+
+
+    # file_name: 

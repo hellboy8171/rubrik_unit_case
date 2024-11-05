@@ -1,9 +1,0 @@
-mutation ngReportDownloadFileMutation($input: DownloadReportFileInput!) {
-  downloadFile(input: $input) {
-    jobId
-    downloadId
-    referenceId
-    __typename
-  }
-}
-
