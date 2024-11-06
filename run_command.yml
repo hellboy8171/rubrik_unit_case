@@ -1,0 +1,12 @@
+- hosts: controlnode
+  gather_facts: no
+  vars:
+    user: 'devuser'
+    password: 'vagrant'
+  tasks:
+    - name: run command
+      shell: "sshpass -p {{password}} ssh {{user}}@managenode1 'whoami'"
+      register: output
+    
+    - debug:
+        msg: "{{output}}"
