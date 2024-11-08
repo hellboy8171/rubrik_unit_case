@@ -1,0 +1,10 @@
+---
+- name: Loop with Block Example
+  hosts: localhost
+  tasks:
+    - name: loop over tasks
+      include_tasks: myfile.yml
+      loop:
+        - dir1
+        - dir2
+        - dir3

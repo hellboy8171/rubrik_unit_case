@@ -1,0 +1,7 @@
+- name: Create a directory for {{ item }}
+  debug:
+    msg: "first loop {{item}}"
+
+- name: Create a file inside {{ item }}
+  debug:
+    msg: "second loop {{item}}"

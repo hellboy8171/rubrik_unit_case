@@ -18,7 +18,7 @@
     - name: Parse the file into structured data
       set_fact:
         data_entries: "{{ data_entries | default([]) + [ {'name': parsed_item.0 | regex_replace('^\\s+|\\s+$', ''), 'pre_comp': parsed_item.1 | regex_replace('^\\s+|\\s+$', ''), 'status': parsed_item.2 | regex_replace('^\\s+|\\s+$', '')} ] }}"
-      loop: "{{ file_lines[2:-14] }}"  # Skips header lines and footer
+      loop: "{{ file_lines[2:-13] }}"  # Skips header lines and footer
       vars:
         parsed_item: "{{ item | regex_replace('\\s{2,}', '|') | split('|') }}"
       when: parsed_item | length == 3  # Ensure each line has exactly 3 elements
