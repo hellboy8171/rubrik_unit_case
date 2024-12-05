@@ -1,0 +1,13 @@
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: print name
+      debug:
+          msg: "this is dummy"
+    - name: run command
+      command: "ls /"
+      register: out1
+    
+    - name: second command
+      command: pwd
+      register: out2
